@@ -23,6 +23,9 @@
 
 	<modules>
 		<module>
+			eureka-server
+		</module>
+		<module>
 			api-check
 		</module>
 		<module>
@@ -30,9 +33,6 @@
 		</module>
 		<module>
 			api-provider
-		</module>
-		<module>
-			EurekaServer
 		</module>
 	</modules>
 
