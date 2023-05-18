@@ -35,3 +35,12 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
 urlCheck: http://localhost:8083
+
+management:
+  info:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health, info
