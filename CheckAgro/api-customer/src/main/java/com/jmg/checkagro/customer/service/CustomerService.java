@@ -6,8 +6,9 @@ import com.jmg.checkagro.customer.exception.MessageCode;
 import com.jmg.checkagro.customer.model.Customer;
 import com.jmg.checkagro.customer.repository.CustomerRepository;
 import com.jmg.checkagro.customer.utils.DateTimeUtils;
+import com.netflix.discovery.converters.Auto;
 import feign.Feign;
-import feign.jackson.JacksonEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,13 +17,18 @@ import javax.transaction.Transactional;
 @Service
 public class CustomerService {
 
+
     private final CustomerRepository customerRepository;
 
-    @Value("${urlCheck}")
-    private String urlCheck;
+//    @Value("${urlCheck}")
+//    private String urlCheck;
 
-    public CustomerService(CustomerRepository customerRepository) {
+
+    private CheckMSClient checkMSClient;
+    @Autowired
+    public CustomerService(CustomerRepository customerRepository,CheckMSClient checkMSClient) {
         this.customerRepository = customerRepository;
+        this.checkMSClient = checkMSClient;
     }
 
     @Transactional
@@ -33,31 +39,31 @@ public class CustomerService {
         entity.setCreation(DateTimeUtils.now());
         entity.setActive(true);
         customerRepository.save(entity);
-
-        registerCustomerInMSCheck(entity);
+        CheckMSClient.DocumentRequest entidad = new CheckMSClient.DocumentRequest(entity.getDocumentType(), entity.getDocumentNumber());
+        checkMSClient.registerCustomer(entidad);
 
         return entity.getId();
     }
 
-    private void registerCustomerInMSCheck(Customer entity) {
-        CheckMSClient client = Feign.builder()
-                .encoder(new JacksonEncoder())
-                .target(CheckMSClient.class, urlCheck);
-        client.registerCustomer(CheckMSClient.DocumentRequest.builder()
-                .documentType(entity.getDocumentType())
-                .documentValue(entity.getDocumentNumber())
-                .build());
-    }
+//    private void registerCustomerInMSCheck(Customer entity) {
+//        CheckMSClient client = Feign.builder()
+////                .encoder(new JacksonEncoder())
+//                .target(CheckMSClient.class, urlCheck);
+//        client.registerCustomer(CheckMSClient.DocumentRequest.builder()
+//                .documentType(entity.getDocumentType())
+//                .documentValue(entity.getDocumentNumber())
+//                .build());
+//    }
 
-    private void deleteCustomerInMSCheck(Customer entity) {
-        CheckMSClient client = Feign.builder()
-                .encoder(new JacksonEncoder())
-                .target(CheckMSClient.class, urlCheck);
-        client.deleteCustomer(CheckMSClient.DocumentRequest.builder()
-                .documentType(entity.getDocumentType())
-                .documentValue(entity.getDocumentNumber())
-                .build());
-    }
+//    private void deleteCustomerInMSCheck(Customer entity) {
+//        CheckMSClient client = Feign.builder()
+//                .encoder(new JacksonEncoder())
+//                .target(CheckMSClient.class, urlCheck);
+//        client.deleteCustomer(CheckMSClient.DocumentRequest.builder()
+//                .documentType(entity.getDocumentType())
+//                .documentValue(entity.getDocumentNumber())
+//                .build());
+//    }
 
     public void update(Long id, Customer entity) throws CustomerException {
         var entityUpdate = customerRepository.findById(id).orElseThrow(() -> new CustomerException(MessageCode.CUSTOMER_NOT_FOUND));
@@ -72,7 +78,8 @@ public class CustomerService {
     public void deleteById(Long id) throws CustomerException {
         var entityDelete = customerRepository.findById(id).orElseThrow(() -> new CustomerException(MessageCode.CUSTOMER_NOT_FOUND));
         customerRepository.updateActive(false, id);
-        deleteCustomerInMSCheck(entityDelete);
+
+        checkMSClient.deleteCustomer(new CheckMSClient.DocumentRequest(entityDelete.getDocumentType(), entityDelete.getDocumentNumber()));
 
     }
 
