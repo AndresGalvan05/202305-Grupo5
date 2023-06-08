@@ -31,7 +31,7 @@ public class CheckService {
     }
 
     @Transactional
-    public Long create(Check check) throws CheckException {
+    public String create(Check check) throws CheckException {
         check.setStateCheck(CheckState.EMIT.name());
         check.setEmitDate(DateTimeUtils.nowDateTime());
         check.setCommissionAgro(check.getAmountTotal().multiply(BigDecimal.valueOf(0.10)));
@@ -76,7 +76,7 @@ public class CheckService {
     }
 
     @Transactional
-    public void pay(Long id) throws CheckException {
+    public void pay(String id) throws CheckException {
         var check = checkRepository.findById(id).orElseThrow(() -> new CheckException(MessageCode.CHECK_NOT_FOUND));
         if (!check.getStateCheck().equals(CheckState.EMIT.name())) {
             throw new CheckException(MessageCode.CHECK_NOT_ACTIVE);
@@ -106,7 +106,7 @@ public class CheckService {
     }
 
     @Transactional
-    public void cancel(Long id) throws CheckException {
+    public void cancel(String id) throws CheckException {
         var check = checkRepository.findById(id).orElseThrow(() -> new CheckException(MessageCode.CHECK_NOT_FOUND));
         if (!check.getStateCheck().equals(CheckState.EMIT.name())) {
             throw new CheckException(MessageCode.CHECK_NOT_ACTIVE);
@@ -133,7 +133,7 @@ public class CheckService {
         checkRepository.save(check);
     }
 
-    public Check getById(Long id) throws CheckException {
+    public Check getById(String id) throws CheckException {
         return checkRepository.findById(id).orElseThrow(() -> new CheckException(MessageCode.CHECK_NOT_FOUND));
 
     }
@@ -142,7 +142,8 @@ public class CheckService {
         log.info("registerCustomer");
         customerCheckLimitRepository.save(
                 CustomerCheckLimit.builder()
-                        .id(CustomerCheckLimit.CustomerCheckLimitId.builder()
+                          .aidi(CustomerCheckLimit.CustomerCheckLimitId.builder()
+//                        .id(CustomerCheckLimit.CustomerCheckLimitId.builder()
                                 .documentTypeCustomer(documentType)
                                 .documentValueCustomer(documentValue)
                                 .build())
@@ -157,7 +158,8 @@ public class CheckService {
         log.info("registerProvider");
         providerCheckLimitRepository.save(
                 ProviderCheckLimit.builder()
-                        .id(ProviderCheckLimit.ProviderCheckLimitId.builder()
+                        .aidi(ProviderCheckLimit.ProviderCheckLimitId.builder()
+//                        .id(ProviderCheckLimit.ProviderCheckLimitId.builder()
                                 .documentTypeProvider(documentType)
                                 .documentValueProvider(documentValue)
                                 .build())

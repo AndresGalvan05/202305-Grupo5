@@ -22,7 +22,7 @@ public class CheckPrintService {
         this.checkRepository = checkRepository;
     }
 
-    public byte[] printCheck(Long checkId) throws CheckException {
+    public byte[] printCheck(String checkId) throws CheckException {
         // Crear el documento
         Document document = new Document();
         var check = checkRepository.findById(checkId).orElseThrow(() -> new CheckException(MessageCode.CHECK_NOT_FOUND));

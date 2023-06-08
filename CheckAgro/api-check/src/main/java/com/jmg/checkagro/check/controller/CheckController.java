@@ -32,28 +32,28 @@ public class CheckController {
 
 
     @PostMapping
-    public Map<String, Long> create(@RequestBody CheckRequest request) throws CheckException {
+    public Map<String, String> create(@RequestBody CheckRequest request) throws CheckException {
         return Map.of("id", checkService.create(checkMapper.toCheck(request)));
     }
 
     @PutMapping("/pay/{id}")
-    public void pay(@PathVariable Long id) throws CheckException {
+    public void pay(@PathVariable String id) throws CheckException {
         checkService.pay(id);
     }
 
     @PutMapping("/cancel/{id}")
-    public void cancel(@PathVariable Long id) throws CheckException {
+    public void cancel(@PathVariable String id) throws CheckException {
         checkService.cancel(id);
     }
 
 
     @GetMapping("/{id}")
-    public CheckResponse getById(@PathVariable Long id) throws CheckException {
+    public CheckResponse getById(@PathVariable String id) throws CheckException {
         return checkMapper.toCheckResponse(checkService.getById(id));
     }
 
     @GetMapping("/print/{id}")
-    public void print(@PathVariable Long id,HttpServletResponse response) throws CheckException, IOException {
+    public void print(@PathVariable String id,HttpServletResponse response) throws CheckException, IOException {
         byte[] fileBytes = checkPrintService.printCheck(id);
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "attachment;filename=checkVirtual.pdf");
