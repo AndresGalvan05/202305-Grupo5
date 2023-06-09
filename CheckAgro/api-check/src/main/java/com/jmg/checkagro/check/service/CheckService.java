@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -35,7 +36,8 @@ public class CheckService {
         check.setStateCheck(CheckState.EMIT.name());
         check.setEmitDate(DateTimeUtils.nowDateTime());
         check.setCommissionAgro(check.getAmountTotal().multiply(BigDecimal.valueOf(0.10)));
-        check.getCheckDetails().forEach(checkDetail -> checkDetail.setCheckVirtual(check));
+//        check.setId(UUID.randomUUID().toString());
+//        check.getCheckDetails().forEach(checkDetail -> checkDetail.setCheckVirtual(check));
 
         var total=check.getCheckDetails().stream().map(
                 checkDetail -> checkDetail.getAmountUnit().multiply(BigDecimal.valueOf(checkDetail.getQuantity()))
@@ -142,8 +144,7 @@ public class CheckService {
         log.info("registerCustomer");
         customerCheckLimitRepository.save(
                 CustomerCheckLimit.builder()
-                          .aidi(CustomerCheckLimit.CustomerCheckLimitId.builder()
-//                        .id(CustomerCheckLimit.CustomerCheckLimitId.builder()
+                        .id(CustomerCheckLimit.CustomerCheckLimitId.builder()
                                 .documentTypeCustomer(documentType)
                                 .documentValueCustomer(documentValue)
                                 .build())
@@ -158,8 +159,7 @@ public class CheckService {
         log.info("registerProvider");
         providerCheckLimitRepository.save(
                 ProviderCheckLimit.builder()
-                        .aidi(ProviderCheckLimit.ProviderCheckLimitId.builder()
-//                        .id(ProviderCheckLimit.ProviderCheckLimitId.builder()
+                        .id(ProviderCheckLimit.ProviderCheckLimitId.builder()
                                 .documentTypeProvider(documentType)
                                 .documentValueProvider(documentValue)
                                 .build())

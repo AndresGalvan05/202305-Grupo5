@@ -13,18 +13,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-
+@Document(collection = "checkVirtual")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Builder
-@Document(collection = "Check")
 public class Check implements Serializable {
 
-
     @Id
-    private String Id;
+    private String id;
     private String documentTypeCustomer;
     private String documentValueCustomer;
     private String documentTypeProvider;
@@ -33,6 +31,8 @@ public class Check implements Serializable {
     private BigDecimal amountTotal;
     private Integer monthsDuration;
     private BigDecimal commissionAgro;
+
     private String stateCheck;
+
     private Set<CheckDetail> checkDetails;
 }

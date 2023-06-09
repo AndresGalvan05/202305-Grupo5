@@ -9,17 +9,16 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 
+@Document(collection = "customerCheckLimit")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Builder
-@Document(collection = "customerCheckLimit")
 public class CustomerCheckLimit {
 
-    @Id
-    private String Id;
-    private CustomerCheckLimit.CustomerCheckLimitId aidi;
+    @EmbeddedId
+    private CustomerCheckLimit.CustomerCheckLimitId id;
     private BigDecimal checkAmountLimit;
     private BigDecimal checkAmountPayed;
     private BigDecimal checkAmountConsumed;
@@ -29,6 +28,7 @@ public class CustomerCheckLimit {
     @Getter
     @Setter
     @Builder
+    @Embeddable
     public static class CustomerCheckLimitId implements Serializable {
         private String documentTypeCustomer;
         private String documentValueCustomer;

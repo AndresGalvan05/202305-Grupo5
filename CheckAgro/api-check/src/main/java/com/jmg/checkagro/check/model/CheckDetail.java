@@ -7,7 +7,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-
+@Document(collection = "jmg_checkDetail")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -19,5 +19,4 @@ public class CheckDetail implements Serializable {
     private String concept;
     private BigDecimal amountUnit;
     private Integer quantity;
-    private Check checkVirtual;
 }

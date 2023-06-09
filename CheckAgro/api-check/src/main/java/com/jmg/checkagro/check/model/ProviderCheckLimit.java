@@ -10,16 +10,15 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 
+@Document(collection = "providerCheckLimit")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Builder
-@Document(collection = "providerCheckLimit")
 public class ProviderCheckLimit {
-    @Id
-    private String Id;
-    private ProviderCheckLimit.ProviderCheckLimitId aidi;
+    @EmbeddedId
+    private ProviderCheckLimit.ProviderCheckLimitId id;
     private Boolean active;
     private BigDecimal checkAmountReceived;
     private BigDecimal checkAmountActive;
@@ -29,6 +28,7 @@ public class ProviderCheckLimit {
     @Getter
     @Setter
     @Builder
+    @Embeddable
     public static class ProviderCheckLimitId implements Serializable {
         private String documentTypeProvider;
         private String documentValueProvider;
