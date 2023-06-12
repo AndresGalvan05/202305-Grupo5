@@ -8,6 +8,8 @@ import com.jmg.checkagro.provider.repository.ProviderRepository;
 import com.jmg.checkagro.provider.utils.DateTimeUtils;
 import com.netflix.discovery.converters.Auto;
 import feign.Feign;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,8 +37,18 @@ public class ProviderService {
         entity.setActive(true);
         providerRepository.save(entity);
 
-        checkMSClient.registerProvider(new CheckMSClient.DocumentRequest(entity.getDocumentType(), entity.getDocumentNumber()));
+        registerProvider(new CheckMSClient.DocumentRequest(entity.getDocumentType(), entity.getDocumentNumber()));
         return entity.getId();
+    }
+
+    @Retry(name = "retryProvider")
+    @CircuitBreaker(name = "clientProvider", fallbackMethod = "registerProviderFallBack")
+    private void registerProvider(CheckMSClient.DocumentRequest entity) {
+        checkMSClient.registerProvider(entity);
+    }
+
+    public void registerProviderFallBack(CheckMSClient.DocumentRequest entity, Throwable t) throws Exception {
+        throw new Exception("Could not register provider");
     }
 
     public void update(Long id, Provider entity) throws ProviderException {
@@ -52,7 +64,17 @@ public class ProviderService {
     public void deleteById(Long id) throws ProviderException {
         var entityDelete = providerRepository.findById(id).orElseThrow(() -> new ProviderException(MessageCode.PROVIDER_NOT_FOUND));
         providerRepository.updateActive(false, id);
-        checkMSClient.deleteProvider(new CheckMSClient.DocumentRequest(entityDelete.getDocumentType(), entityDelete.getDocumentNumber()));
+        deleteProvider(new CheckMSClient.DocumentRequest(entityDelete.getDocumentType(), entityDelete.getDocumentNumber()));
+    }
+
+    @Retry(name = "retryProvider")
+    @CircuitBreaker(name = "clientProvider", fallbackMethod = "deleteProviderFallBack")
+    private void deleteProvider(CheckMSClient.DocumentRequest entityDelete) {
+        checkMSClient.deleteProvider(entityDelete);
+    }
+
+    public void deleteProviderFallBack(CheckMSClient.DocumentRequest documentRequest, Throwable t) throws Exception {
+        throw new Exception("Could not delete provider");
     }
 
     public Provider getById(Long id) throws ProviderException {

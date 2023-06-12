@@ -8,6 +8,9 @@ import com.jmg.checkagro.customer.repository.CustomerRepository;
 import com.jmg.checkagro.customer.utils.DateTimeUtils;
 import com.netflix.discovery.converters.Auto;
 import feign.Feign;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,9 +43,19 @@ public class CustomerService {
         entity.setActive(true);
         customerRepository.save(entity);
         CheckMSClient.DocumentRequest entidad = new CheckMSClient.DocumentRequest(entity.getDocumentType(), entity.getDocumentNumber());
-        checkMSClient.registerCustomer(entidad);
+        createCustomer(entidad);
 
         return entity.getId();
+    }
+
+    @Retry(name = "retryCustomer")
+    @CircuitBreaker(name = "clientCustomer", fallbackMethod = "createCustomerFallBack")
+    private void createCustomer(CheckMSClient.DocumentRequest entity) {
+        checkMSClient.registerCustomer(entity);
+    }
+
+    public void createCustomerFallBack(CheckMSClient.DocumentRequest documentRequest, Throwable t) throws Exception {
+        throw new Exception("Could not register customer");
     }
 
 //    private void registerCustomerInMSCheck(Customer entity) {
@@ -79,8 +92,17 @@ public class CustomerService {
         var entityDelete = customerRepository.findById(id).orElseThrow(() -> new CustomerException(MessageCode.CUSTOMER_NOT_FOUND));
         customerRepository.updateActive(false, id);
 
-        checkMSClient.deleteCustomer(new CheckMSClient.DocumentRequest(entityDelete.getDocumentType(), entityDelete.getDocumentNumber()));
+        deleteCustomer(new CheckMSClient.DocumentRequest(entityDelete.getDocumentType(), entityDelete.getDocumentNumber()));
+    }
 
+    @Retry(name = "retryCustomer")
+    @CircuitBreaker(name = "clientCustomer", fallbackMethod = "deleteCustomerFallBack")
+    private void deleteCustomer(CheckMSClient.DocumentRequest entity) {
+        checkMSClient.deleteCustomer(entity);
+    }
+
+    public void deleteCustomerFallBack(CheckMSClient.DocumentRequest documentRequest, Throwable t) throws Exception {
+        throw new Exception("Could not delete customer");
     }
 
     public Customer getById(Long id) throws CustomerException {
