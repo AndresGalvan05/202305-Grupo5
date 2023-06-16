@@ -1,6 +1,7 @@
 package com.jmg.checkagro.customer.service;
 
 import com.jmg.checkagro.customer.client.CheckMSClient;
+import com.jmg.checkagro.customer.event.RegisterCustomerProducer;
 import com.jmg.checkagro.customer.exception.CustomerException;
 import com.jmg.checkagro.customer.exception.MessageCode;
 import com.jmg.checkagro.customer.model.Customer;
@@ -22,6 +23,7 @@ public class CustomerService {
 
 
     private final CustomerRepository customerRepository;
+    private final RegisterCustomerProducer registerCustomerProducer;
 
 //    @Value("${urlCheck}")
 //    private String urlCheck;
@@ -29,9 +31,10 @@ public class CustomerService {
 
     private CheckMSClient checkMSClient;
     @Autowired
-    public CustomerService(CustomerRepository customerRepository,CheckMSClient checkMSClient) {
+    public CustomerService(CustomerRepository customerRepository,CheckMSClient checkMSClient, RegisterCustomerProducer registerCustomerProducer) {
         this.customerRepository = customerRepository;
         this.checkMSClient = checkMSClient;
+        this.registerCustomerProducer = registerCustomerProducer;
     }
 
     @Transactional
@@ -42,9 +45,9 @@ public class CustomerService {
         entity.setCreation(DateTimeUtils.now());
         entity.setActive(true);
         customerRepository.save(entity);
+        registerCustomerProducer.publishRegisterCustomer(new RegisterCustomerProducer.Data(entity.getDocumentType(), entity.getDocumentNumber()));
         CheckMSClient.DocumentRequest entidad = new CheckMSClient.DocumentRequest(entity.getDocumentType(), entity.getDocumentNumber());
         createCustomer(entidad);
-
         return entity.getId();
     }
 
